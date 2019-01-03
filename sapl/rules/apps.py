@@ -1,14 +1,15 @@
 from builtins import LookupError
-
-import django
 import logging
 
-from django.apps import apps
+from django import apps
 from django.contrib.auth import get_user_model
 from django.contrib.auth.management import _get_all_permissions
 from django.core import exceptions
 from django.db import models, router
+from django.db.models.signals import post_save, post_delete
 from django.db.utils import DEFAULT_DB_ALIAS
+from django.dispatch.dispatcher import receiver
+from django.utils import timezone
 from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
 import reversion
@@ -19,7 +20,7 @@ from sapl.rules import (SAPL_GROUP_ADMINISTRATIVO, SAPL_GROUP_COMISSOES,
                         SAPL_GROUP_SESSAO)
 
 
-class AppConfig(django.apps.AppConfig):
+class AppConfig(apps.AppConfig):
     name = 'sapl.rules'
     label = 'rules'
     verbose_name = _('Regras de Acesso')
@@ -35,10 +36,9 @@ def create_proxy_permissions(
 
     try:
         logger.info("Tentando obter modelo de permissão do app.")
-        Permission = apps.get_model('auth', 'Permission')
+        Permission = apps.apps.get_model('auth', 'Permission')
     except LookupError as e:
         logger.error(str(e))
-        return
 
     if not router.allow_migrate_model(using, Permission):
         return
@@ -120,12 +120,12 @@ def create_proxy_permissions(
     for perm in perms:
         if len(perm.name) > permission_name_max_length:
             logger.error("The permission name %s of %s.%s "
-                        "is longer than %s characters" % (
-                            perm.name,
-                            perm.content_type.app_label,
-                            perm.content_type.model,
-                            permission_name_max_length,
-                        ))
+                         "is longer than %s characters" % (
+                             perm.name,
+                             perm.content_type.app_label,
+                             perm.content_type.model,
+                             permission_name_max_length,
+                         ))
             raise exceptions.ValidationError(
                 'The permission name %s of %s.%s '
                 'is longer than %s characters' % (

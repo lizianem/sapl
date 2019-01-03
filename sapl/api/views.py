@@ -1,15 +1,26 @@
+from datetime import datetime
 import logging
+
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.http import Http404
+from django.utils.timezone import utc
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.filters import DjangoFilterBackend
 from rest_framework.generics import ListAPIView
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import (IsAuthenticated, AllowAny)
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import ReadOnlyModelViewSet
+from reversion.models import Version
 
+from sapl.api.forms import (AutorChoiceFilterSet, AutoresPossiveisFilterSet,
+                            AutorSearchForFieldFilterSet)
 from sapl.api.forms import (AutorChoiceFilterSet, AutoresPossiveisFilterSet,
                             AutorSearchForFieldFilterSet)
 from sapl.api.serializers import (AutorChoiceSerializer, AutorSerializer,
@@ -17,6 +28,7 @@ from sapl.api.serializers import (AutorChoiceSerializer, AutorSerializer,
                                   MateriaLegislativaSerializer,
                                   ModelChoiceSerializer,
                                   SessaoPlenariaSerializer)
+from sapl.api.serializers import ModelChoiceSerializer, ChoiceSerializer
 from sapl.base.models import Autor, TipoAutor
 from sapl.materia.models import MateriaLegislativa
 from sapl.sessao.models import SessaoPlenaria
@@ -175,7 +187,6 @@ class AutoresProvaveisListView(ListAPIView):
     serializer_class = ChoiceSerializer
 
     def get_queryset(self):
-        
         params = {'content_type__isnull': False}
         username = self.request.user.username
         tipo = ''
@@ -185,7 +196,6 @@ class AutoresProvaveisListView(ListAPIView):
                 params['id'] = tipo
         except Exception as e:
             self.logger.error('user= ' + username + '. ' + str(e))
-            pass
 
         tipos = TipoAutor.objects.filter(**params)
 
