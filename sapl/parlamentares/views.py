@@ -1082,13 +1082,18 @@ class EditaNomePartidoView(PermissionRequiredMixin, FormView):
                      + ") em " + data['data_alteracao'].strftime("%d/%m/%Y") + "."
         obj.nome = data['nome']
         obj.sigla = data['sigla']
-        obj.observacao += '\n\n' + observacao
+        if obj.observacao:
+            obj.observacao += '\n\n'
+        obj.observacao += observacao
         obj.save()
 
         return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
-        url_reverse = reverse('sapl.parlamentares:partido_detail',
-                                  kwargs={'pk': self.kwargs['pk']})
+        return reverse('sapl.parlamentares:partido_detail',
+                        kwargs={'pk': self.kwargs['pk']})
 
-        return url_reverse
+    @property
+    def cancel_url(self):
+        return reverse('sapl.parlamentares:partido_detail',
+                        kwargs={'pk': self.kwargs['pk']})
