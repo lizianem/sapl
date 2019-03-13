@@ -39,6 +39,7 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         choice_anos_com_normas, choice_anos_com_materias,
                         FilterOverridesMetaMixin, FileFieldCheckMixin)
 from .models import AppConfig, CasaLegislativa
+from operator import xor
 
 
 ACTION_CREATE_USERS_AUTOR_CHOICE = [
@@ -150,9 +151,9 @@ class UsuarioCreateForm(ModelForm):
 
 
 class UsuarioFilterSet(django_filters.FilterSet):
-    
+
     username = django_filters.CharFilter(
-        label=_('Nome de Usuário'), 
+        label=_('Nome de Usuário'),
         lookup_expr='icontains')
 
     class Meta:
@@ -163,7 +164,7 @@ class UsuarioFilterSet(django_filters.FilterSet):
         super(UsuarioFilterSet, self).__init__(*args, **kwargs)
 
         row0 = to_row([('username', 12)])
-        
+
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
@@ -945,7 +946,7 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
         self.filters['tipo'].label = 'Tipo de Matéria'
         self.filters['tramitacao__unidade_tramitacao_local'].label = 'Unidade de tramitação local'
         self.filters['tramitacao__status'].label = 'Status de tramitação'
-        
+
         row1 = to_row([('tramitacao__data_fim_prazo', 12)])
         row2 = to_row(
             [('tipo', 4),
@@ -1387,38 +1388,43 @@ class PartidoForm(FileFieldCheckMixin, ModelForm):
         model = Partido
         exclude = []
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, pk=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-        super(PartidoForm, self).__init__(*args, **kwargs)
+        self.fields['historico'].widget.attrs['readonly'] = True
 
-        # TODO Utilizar esses campos na issue #2161 de alteração de nomes de partidos
-        # if self.instance:
-        #     if self.instance.nome:
-        #         self.fields['nome'].widget.attrs['readonly'] = True
-        #         self.fields['sigla'].widget.attrs['readonly'] = True
-
-        row1 = to_row(
-            [('sigla', 2),
-             ('nome', 6),
-             ('data_criacao', 2),
-             ('data_extincao', 2),])
+        row1 = to_row([
+            ('sigla', 2),
+            ('nome', 6),
+            ('data_criacao', 2),
+            ('data_extincao', 2)]
+        )
         row2 = to_row([('observacao', 12)])
         row3 = to_row([('logo_partido', 12)])
+        row4 = to_row([('historico', 12)])
 
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
-            row1, row2, row3,
-            form_actions(label='Salvar'))
+            row1, row2, row3, row4,
+            form_actions(label='Salvar')
+        )
 
     def clean(self):
-
-        cleaned_data = super(PartidoForm, self).clean()
+        cleaned_data = self.cleaned_data
 
         if not self.is_valid():
             return cleaned_data
-            
-        if cleaned_data['data_criacao'] and cleaned_data['data_extincao']:
-            if cleaned_data['data_criacao'] > cleaned_data['data_extincao']:
-                raise ValidationError("Certifique-se de que a data de criação seja anterior à data de extinção.")
+
+        if cleaned_data['data_criacao'] and cleaned_data['data_extincao'] and cleaned_data['data_criacao'] > \
+                cleaned_data['data_extincao']:
+            raise ValidationError("Certifique-se de que a data de criação seja anterior à data de extinção.")
+
+        if self.instance.pk:
+            partido = Partido.objects.get(pk=self.instance.pk)
+
+            if xor(cleaned_data['sigla'] == partido.sigla, cleaned_data['nome'] == partido.nome):
+                raise ValidationError(_('O Partido deve ter um novo Nome e uma nova Sigla.'))
+
+        cleaned_data.update({'partido': partido})
 
         return cleaned_data

@@ -69,6 +69,33 @@ class PartidoCrud(CrudAux):
     class UpdateView(CrudAux.UpdateView):
         form_class = PartidoForm
 
+        def form_valid(self, form):
+            nova_sigla = form.cleaned_data['sigla']
+            antiga_sigla = form.cleaned_data['partido'].sigla
+
+            if nova_sigla != antiga_sigla:
+                novo_nome = form.cleaned_data['nome']
+                antigo_nome = form.cleaned_data['partido'].nome
+
+                if len(form.cleaned_data['historico']) != 0:
+                    historico = '{}\n\n'.format(form.cleaned_data['historico'])
+                else:
+                    historico = ''
+
+                historico += 'Sigla alterada de "{}" para "{}" e Nome alterado de "{}" para "{}" no dia {}'.format(
+                    antiga_sigla, nova_sigla,
+                    antigo_nome, novo_nome,
+                    timezone.now().date().strftime("%d/%m/%Y"))
+
+                partido = Partido.objects.get(pk=self.kwargs.get('pk'))
+                partido.sigla = nova_sigla
+                partido.nome = novo_nome
+                partido.historico = historico
+                partido.save()
+
+            return HttpResponseRedirect(
+                reverse('sapl.parlamentares:partido_detail', kwargs={'pk': self.kwargs.get('pk')}))
+
 
 class VotanteView(MasterDetailCrud):
     model = Votante
