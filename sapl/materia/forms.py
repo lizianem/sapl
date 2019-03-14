@@ -780,8 +780,8 @@ class AnexadaForm(ModelForm):
                 ano=cleaned_data['ano'],
                 tipo=cleaned_data['tipo'])
         except ObjectDoesNotExist:
-            msg = _('A {} {}/{} não existe no cadastro de matérias legislativas.'
-                    .format(cleaned_data['tipo'], cleaned_data['numero'], cleaned_data['ano']))
+            msg = _('A Matéria Legislativa a ser anexada (numero={}, ano={}, tipo={}) não existe no cadastro'
+                    ' de matérias legislativas.'.format(cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo']))
             self.logger.error("A matéria a ser anexada não existe no cadastro"
                               " de matérias legislativas.")
             raise ValidationError(msg)
@@ -1168,6 +1168,7 @@ class AcessorioEmLoteFilterSet(django_filters.FilterSet):
         self.form.helper.layout = Layout(
             Fieldset(_('Documentos Acessórios em Lote'),
                      row1, row2, form_actions(label='Pesquisar')))
+
 
 class AnexadaEmLoteFilterSet(django_filters.FilterSet):
 
