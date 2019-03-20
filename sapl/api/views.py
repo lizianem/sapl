@@ -508,3 +508,17 @@ class _SessaoPlenariaViewSet(
 
         serializer = ChoiceSerializer(years, many=True)
         return Response(serializer.data)
+
+
+SaplSetViews['base']['autor'] = _AutorViewSet.build_class_with_actions()
+
+SaplSetViews['materia']['proposicao'] = _ProposicaoViewSet
+
+SaplSetViews['parlamentares']['parlamentar'] = _ParlamentarViewSet
+
+SaplSetViews['protocoloadm']['documentoadministrativo'] = _DocumentoAdministrativoViewSet
+SaplSetViews['protocoloadm']['documentoacessorioadministrativo'] = _DocumentoAcessorioAdministrativoViewSet
+SaplSetViews['protocoloadm']['tramitacaoadministrativo'] = _TramitacaoAdministrativoViewSet
+SaplSetViews['protocoloadm']['anexado'] = _AnexadoViewSet
+
+SaplSetViews['sessao']['sessaoplenaria'] = _SessaoPlenariaViewSet
