@@ -2,7 +2,7 @@ import json
 
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer
-from channels.consumer import AsyncConsumer
+from channels.consumer import SyncConsumer
 
 
 class TimeRefreshConsumer(AsyncWebsocketConsumer):
@@ -136,18 +136,16 @@ class ChatConsumer__tutorial2(WebsocketConsumer):
             'message': message
         }))
 
-class PainelConsumer(AsyncConsumer):
+class PainelConsumer(SyncConsumer):
 
-    async def websocket_connect(self, event):
-        import ipdb; ipdb.set_trace()
-        await self.send({
+    def websocket_connect(self, event):
+        self.send({
             "type": "websocket.accept",
         })
 
-
-    async def websocket_receive(self, event):
+    def websocket_receive(self, event):
         import ipdb; ipdb.set_trace()
-        await self.send({
+        self.send({
             "type": "websocket.send",
             "text": event["text"],
         })

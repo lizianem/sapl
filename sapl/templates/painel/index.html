@@ -106,6 +106,9 @@
       </div>
 
       </div>
+
+    <textarea id="chat-log" cols="10" rows="5"></textarea><br/>
+    <input id="chat-message-submit" type="button" value="Pull"/>
   </body>
 
   {% block webpack_loader_js %}
@@ -125,20 +128,20 @@
     $(document).ready(function() {
       //TODO: replace by a fancy jQuery clock
       function checkTime(i) {
-          if (i<10) {i = "0" + i};  // add zero in front of numbers < 10
-            return i;
+        if (i<10) {i = "0" + i};  // add zero in front of numbers < 10
+          return i;
       }
       function startTime() {
-          var today=new Date();
-          var h=today.getHours();
-          var m=today.getMinutes();
-          var s=today.getSeconds();
-          m = checkTime(m);
-          s = checkTime(s);
-          $("#relogio").text(h+":"+m+":"+s)
-          var t = setTimeout(function(){
-              startTime()
-          }, 500);
+        var today=new Date();
+        var h=today.getHours();
+        var m=today.getMinutes();
+        var s=today.getSeconds();
+        m = checkTime(m);
+        s = checkTime(s);
+        $("#relogio").text(h+":"+m+":"+s)
+        var t = setTimeout(function(){
+            startTime()
+        }, 500);
       }
       startTime();
 
@@ -197,13 +200,30 @@
     var painel_socket = new WebSocket(
         ws_scheme+ '://' + window.location.host +
         '/ws/painel-principal/' + sessao_pk);
+    console.log(ws_scheme+ '://' + window.location.host +
+        '/ws/painel-principal/' + sessao_pk)
+
+    painel_socket.onopen = function(e){
+      console.log("Conectado!");
+    }
+    painel_socket.onerror = function(e){
+      console.log(e); 
+    }
+
+    document.querySelector('#chat-message-submit').onclick = function(e) {
+        console.log("apertou");
+        painel_socket.send(JSON.stringify({
+            'message': 'OK'
+        }));
+    };
 
     // Função para lidar com mensagens do servidor.
     // Quando chegar o signal de atualização de alguma tabela
     // a qual o Painel é sensível.
-    painel_socket.onmessage = function(message) {
-        var data = JSON.parse(message.data);
-        console.log(data)
+    painel_socket.onmessage = function(e) {
+        var data = JSON.parse(e.data);
+        console.log(data);
+        document.querySelector('#chat-log').value += (e.data + '\n');
         //atualizar_painel(data);
     };
 
@@ -211,24 +231,20 @@
         console.error('Chat fechado inesperadamente');
     };
 
-    painel_socket.send(JSON.stringify({
-        'message': 'OK'
-    }));
 
     function atualizar_painel(data) {
     }
 
-
-
     function show_voto(voto) {
-    if (voto == "Sim"){
-        return '<font color="green"> Sim </font>'
+      if (voto == "Sim"){
+          return '<font color="green"> Sim </font>'
+      }
+      else if (voto == "Não"){
+          return '<font color="red"> Não </font>'
+      }
+      return voto
     }
-    else if (voto == "Não"){
-        return '<font color="red"> Não </font>'
-    }
-    return voto
-    }
+  
   </script>
 </html>
 
