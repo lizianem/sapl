@@ -3,7 +3,6 @@
 	<strong>Matérias da Ordem do Dia: </strong>
 	</br></br>
 	{% for m in materias_ordem %}
-	<p>
 		<b>{{m.numero}} - {{m.titulo}}</b>
 		Descrição: {{m.ementa|safe}}
 		Autor {{ m.autor|length|pluralize:"es" }}: {{ m.autor|join:', ' }}
@@ -18,13 +17,12 @@
 		Sim:{{m.voto_sim}}
 		Não:{{m.voto_nao}}
 		Abstenções:{{m.voto_abstencoes}}
-		Resultado:</b> 	{{m.resultado}} {{m.resultado_observacao}}
+		Resultado: 	{{m.resultado}} {{m.resultado_observacao}}
 		{% if m.voto_nominal%}
-		<b>Votos Nominais :</b>
+		Votos Nominais :
 			{% for voto in m.voto_nominal %}
 				/ {{voto.0}} - {{voto.1}}
 			{% endfor %};
 		{% endif %}
-	</p>
 	{% endfor %}
 </fieldset>

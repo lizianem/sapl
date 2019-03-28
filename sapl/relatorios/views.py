@@ -31,7 +31,9 @@ from sapl.sessao.views import (get_identificação_basica, get_mesa_diretora,
                                 get_presenca_sessao,get_expedientes,
                                 get_materias_expediente,get_oradores_expediente,
                                 get_presenca_ordem_do_dia,get_materias_ordem_do_dia,
-                                get_oradores_explicações_pessoais, get_ocorrencias_da_sessão)
+                                get_oradores_explicações_pessoais, get_ocorrencias_da_sessão,
+                                get_assinaturas)
+
 
 from .templates import (pdf_capa_processo_gerar,
                         pdf_documento_administrativo_gerar, pdf_espelho_gerar,
@@ -1256,6 +1258,7 @@ def resumo_ata_pdf(request,pk):
     context.update(get_materias_ordem_do_dia(sessao_plenaria))
     context.update(get_oradores_explicações_pessoais(sessao_plenaria))
     context.update(get_ocorrencias_da_sessão(sessao_plenaria))
+    context.update(get_assinaturas(sessao_plenaria))
     context.update({'object':sessao_plenaria})
     context.update({'data': dt.today().strftime('%d/%m/%Y')})
     context.update({'rodape':rodape})
