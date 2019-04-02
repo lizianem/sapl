@@ -37,7 +37,8 @@ from .forms import (FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
-                     SituacaoMilitar, TipoAfastamento, TipoDependente, Votante)
+                     SituacaoMilitar, TipoAfastamento, TipoDependente, Votante,
+                     HistoricoPartido)
 
 
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
@@ -77,25 +78,23 @@ class PartidoCrud(CrudAux):
                 novo_nome = form.cleaned_data['nome']
                 antigo_nome = form.cleaned_data['partido'].nome
 
-                if len(form.cleaned_data['historico']) != 0:
-                    historico = '{}\n\n'.format(form.cleaned_data['historico'])
-                else:
-                    historico = ''
-
-                historico += 'Sigla alterada de "{}" para "{}" e Nome alterado de "{}" para "{}" no dia {}'.format(
-                    antiga_sigla, nova_sigla,
-                    antigo_nome, novo_nome,
-                    timezone.now().date().strftime("%d/%m/%Y"))
-
                 partido = Partido.objects.get(pk=self.kwargs.get('pk'))
                 partido.sigla = nova_sigla
                 partido.nome = novo_nome
-                partido.historico = historico
+                                
+                historico_partido = HistoricoPartido(sigla=antiga_sigla,nome=antigo_nome,partido=partido)
+                historico_partido.save()
                 partido.save()
 
             return HttpResponseRedirect(
                 reverse('sapl.parlamentares:partido_detail', kwargs={'pk': self.kwargs.get('pk')}))
 
+
+    class DetailView(CrudAux.DetailView):
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(kwargs=kwargs)
+            context.update({'historico': HistoricoPartido.objects.filter(partido=self.object).order_by('-pk')})
+            return context
 
 class VotanteView(MasterDetailCrud):
     model = Votante

@@ -1391,8 +1391,6 @@ class PartidoForm(FileFieldCheckMixin, ModelForm):
     def __init__(self, pk=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields['historico'].widget.attrs['readonly'] = True
-
         row1 = to_row([
             ('sigla', 2),
             ('nome', 6),

@@ -99,8 +99,7 @@ def get_logo_media_path(instance, subpath, filename):
 
 
 def logo_upload_path(instance, filename):
-    return get_logo_media_path(instance, 'logo', filename)
-
+    return get_logo_media_path(instance, 'logo', filename)  
 
 @reversion.register()
 class Partido(models.Model):
@@ -133,10 +132,6 @@ class Partido(models.Model):
         blank=True,
         verbose_name=_('Observação')
     )
-    historico = models.TextField(
-        blank=True,
-        verbose_name=_('Histórico')
-    )
 
     class Meta:
         verbose_name = _('Partido')
@@ -147,6 +142,23 @@ class Partido(models.Model):
             'sigla': self.sigla, 'nome': self.nome
         }
 
+
+@reversion.register()
+class HistoricoPartido(models.Model):
+    sigla = models.CharField(
+        max_length=9,
+        verbose_name=_('Sigla')
+    )
+    nome = models.CharField(
+        max_length=50,
+        verbose_name=_('Nome')
+    )
+    data_alteracao = models.DateField(
+        default=timezone.now,
+        verbose_name=_('Data Alteração')
+    )
+    partido = models.ForeignKey(Partido, on_delete=models.PROTECT)
+  
 
 @reversion.register()
 class ComposicaoColigacao(models.Model):

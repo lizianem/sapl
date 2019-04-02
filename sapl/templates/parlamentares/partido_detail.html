@@ -7,3 +7,29 @@
         <a href="{% url 'sapl.parlamentares:parlamentares_filiados' object.pk %}" class="btn btn-outline-primary">Listar Parlamentares Filiados</a>
     </div>
 {% endblock actions %}
+
+{% block table_content %}
+    {{ block.super }}
+
+    <p class="control-label">Historico de Alteração:</p>
+
+    <table class="table table-striped">
+        <thead>
+          <tr>
+            <th scope="col">Data de modificação</th>
+            <th scope="col">Sigla Anterior</th>
+            <th scope="col">Nome Anterior</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for h in historico %}
+          <tr>
+            <td>{{ h.data_alteracao }}</td>
+            <td>{{ h.sigla }}</td>
+            <td>{{ h.nome }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+
+{% endblock table_content %}
