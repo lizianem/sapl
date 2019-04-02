@@ -1280,12 +1280,55 @@ class TramitacaoCrud(MasterDetailCrud):
 
             self.object = form.save()
             username = self.request.user.username
-
-            if form.instance.status.indicador == 'F':
-                form.instance.materia.em_tramitacao = False
+            
+            if not Anexada.objects.filter(materia_principal=self.kwargs['pk']).exists():
+                
+                if form.instance.status.indicador == 'F':
+                    form.instance.materia.em_tramitacao = False
+                else:
+                    form.instance.materia.em_tramitacao = True
+                
+                form.instance.materia.save()       
+            
             else:
-                form.instance.materia.em_tramitacao = True
-            form.instance.materia.save()
+
+                if form.instance.status.indicador == 'F':
+                    principal = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
+                    principal.em_tramitacao = False
+
+                    anexadas_principal = Anexada.objects.filter(materia_principal=principal)
+                    while(anexadas_principal):
+                        anexadas = []
+
+                        for anexada in anexadas_principal:
+                            anexada.materia_anexada.em_tramitacao = False
+                            anexada.materia_anexada.save()
+
+                            anexadas_anexada = Anexada.objects.filter(materia_principal=anexada.materia_anexada)
+                            for a in anexadas_anexada:
+                                anexadas.append(a)
+                            
+                        anexadas_principal = anexadas
+
+                else:
+                    principal = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
+                    principal.em_tramitacao = True
+
+                    anexadas_principal = Anexada.objects.filter(materia_principal=principal)
+                    while(anexadas_principal):
+                        anexadas = []
+
+                        for anexada in anexadas_principal:
+                            anexada.materia_anexada.em_tramitacao = True
+                            anexada.materia_anexada.save()
+
+                            anexadas_anexada = Anexada.objects.filter(materia_principal=anexada.materia_anexada)
+                            for a in anexadas_anexada:
+                                anexadas.append(a)
+                            
+                        anexadas_principal = anexadas
+                
+                principal.save()
 
             try:
                 self.logger.debug("user=" + username + ". Tentando enviar Tramitacao (sender={}, post={}, request={})."
