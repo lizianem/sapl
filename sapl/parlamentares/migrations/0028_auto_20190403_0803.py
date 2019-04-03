@@ -23,10 +23,6 @@ class Migration(migrations.Migration):
                 ('data_alteracao', models.DateField(default=django.utils.timezone.now, verbose_name='Data Alteração')),
             ],
         ),
-        migrations.RemoveField(
-            model_name='partido',
-            name='historico',
-        ),
         migrations.AddField(
             model_name='historicopartido',
             name='partido',

@@ -81,7 +81,6 @@ class PartidoCrud(CrudAux):
                 partido = Partido.objects.get(pk=self.kwargs.get('pk'))
                 partido.sigla = nova_sigla
                 partido.nome = novo_nome
-                                
                 historico_partido = HistoricoPartido(sigla=antiga_sigla,nome=antigo_nome,partido=partido)
                 historico_partido.save()
                 partido.save()
@@ -695,7 +694,15 @@ class ParlamentarCrud(Crud):
                 else:
                     self.logger.debug("user=" + username +
                                       ". Filiação encontrada com sucesso.")
-                    row[1] = (filiacao.partido.sigla, None, None)
+
+                    partido_aux = filiacao.partido
+                    historico = HistoricoPartido.objects.filter(partido=filiacao.partido).order_by('-data_alteracao')  
+                    if historico:
+                        for p in historico:
+                            if legislatura.data_fim < p.data_alteracao:
+                                partido_aux = p
+
+                        row[1] = (partido_aux.sigla, None, None)
 
             return context
 

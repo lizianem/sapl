@@ -158,7 +158,11 @@ class HistoricoPartido(models.Model):
         verbose_name=_('Data Alteração')
     )
     partido = models.ForeignKey(Partido, on_delete=models.PROTECT)
-  
+
+    def __str__(self):
+        return _('%(sigla)s - %(nome)s') % {
+            'sigla': self.sigla, 'nome': self.nome
+        }
 
 @reversion.register()
 class ComposicaoColigacao(models.Model):

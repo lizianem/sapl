@@ -1399,11 +1399,10 @@ class PartidoForm(FileFieldCheckMixin, ModelForm):
         )
         row2 = to_row([('observacao', 12)])
         row3 = to_row([('logo_partido', 12)])
-        row4 = to_row([('historico', 12)])
 
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
-            row1, row2, row3, row4,
+            row1, row2, row3,
             form_actions(label='Salvar')
         )
 
@@ -1423,6 +1422,6 @@ class PartidoForm(FileFieldCheckMixin, ModelForm):
             if xor(cleaned_data['sigla'] == partido.sigla, cleaned_data['nome'] == partido.nome):
                 raise ValidationError(_('O Partido deve ter um novo Nome e uma nova Sigla.'))
 
-        cleaned_data.update({'partido': partido})
+            cleaned_data.update({'partido': partido})
 
         return cleaned_data
