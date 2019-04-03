@@ -7,5 +7,5 @@ websocket_urlpatterns = [
 
     url(r'^ws/time-refresh/$', consumers.TimeRefreshConsumer),
 
-    url(r'^ws/painel-principal/(?P<pk>\d+)$', consumers.PainelConsumer),
+    url(r'^ws/painel-principal/(?P<pk>\d+)/$', consumers.PainelConsumer),
 ]
