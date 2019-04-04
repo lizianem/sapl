@@ -1289,15 +1289,14 @@ class TramitacaoCrud(MasterDetailCrud):
                     form.instance.materia.em_tramitacao = True
                 
                 form.instance.materia.save()       
-            
             else:
+                principal = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
+                anexadas_principal = Anexada.objects.filter(materia_principal=principal)
 
                 if form.instance.status.indicador == 'F':
-                    principal = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
                     principal.em_tramitacao = False
 
-                    anexadas_principal = Anexada.objects.filter(materia_principal=principal)
-                    while(anexadas_principal):
+                    while anexadas_principal:
                         anexadas = []
 
                         for anexada in anexadas_principal:
@@ -1309,13 +1308,10 @@ class TramitacaoCrud(MasterDetailCrud):
                                 anexadas.append(a)
                             
                         anexadas_principal = anexadas
-
                 else:
-                    principal = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
                     principal.em_tramitacao = True
 
-                    anexadas_principal = Anexada.objects.filter(materia_principal=principal)
-                    while(anexadas_principal):
+                    while anexadas_principal:
                         anexadas = []
 
                         for anexada in anexadas_principal:
@@ -1327,7 +1323,7 @@ class TramitacaoCrud(MasterDetailCrud):
                                 anexadas.append(a)
                             
                         anexadas_principal = anexadas
-                
+
                 principal.save()
 
             try:
@@ -1358,11 +1354,78 @@ class TramitacaoCrud(MasterDetailCrud):
             self.object = form.save()
             username = self.request.user.username
 
-            if form.instance.status.indicador == 'F':
-                form.instance.materia.em_tramitacao = False
+            tramitacao = Tramitacao.objects.get(pk=self.kwargs['pk'])
+            ultima_tramitacao = Tramitacao.objects.filter(materia=tramitacao.materia).order_by('-timestamp').first()
+            if not Anexada.objects.filter(materia_principal=tramitacao.materia).exists():
+                
+                if ultima_tramitacao.status.indicador == 'F':
+                    form.instance.materia.em_tramitacao = False
+                else:
+                    form.instance.materia.em_tramitacao = True
+                
+                form.instance.materia.save()       
             else:
-                form.instance.materia.em_tramitacao = True
-            form.instance.materia.save()
+                anexadas_principal = Anexada.objects.filter(materia_principal=tramitacao.materia)
+            
+                if ultima_tramitacao.status.indicador == 'F':
+                    tramitacao.materia.em_tramitacao = False
+
+                    while anexadas_principal:
+                        anexadas = []
+
+                        for anexada in anexadas_principal:
+                            anexada.materia_anexada.em_tramitacao = False
+                            anexada.materia_anexada.save()
+
+                            anexadas_anexada = Anexada.objects.filter(materia_principal=anexada.materia_anexada)
+                            for a in anexadas_anexada:
+                                anexadas.append(a)
+                            
+                        anexadas_principal = anexadas
+
+                else:
+                    tramitacao.materia.em_tramitacao = True
+
+                    while anexadas_principal:
+                        anexadas = []
+
+                        for anexada in anexadas_principal:
+                            anexada.materia_anexada.em_tramitacao = True
+                            anexada.materia_anexada.save()
+
+                            anexadas_anexada = Anexada.objects.filter(materia_principal=anexada.materia_anexada)
+                            for a in anexadas_anexada:
+                                anexadas.append(a)
+                            
+                        anexadas_principal = anexadas
+                
+                tramitacao.materia.save()
+
+            if Anexada.objects.filter(materia_principal=tramitacao.materia).exists():
+                anexadas_principal = Anexada.objects.filter(materia_principal=tramitacao.materia)
+                while anexadas_principal:
+                    anexadas = []
+
+                    for anexada in anexadas_principal:
+                        tramitacoes_anexada = Tramitacao.objects.filter(materia=anexada.materia_anexada)
+                        for t in tramitacoes_anexada:
+                            if tramitacao.timestamp == t.timestamp:
+                                t.status = tramitacao.status
+                                t.data_tramitacao = tramitacao.data_tramitacao
+                                t.unidade_tramitacao_local = tramitacao.unidade_tramitacao_local
+                                t.data_encaminhamento = tramitacao.data_encaminhamento
+                                t.unidade_tramitacao_destino = tramitacao.unidade_tramitacao_destino
+                                t.urgente = tramitacao.urgente
+                                t.turno = tramitacao.turno
+                                t.texto = tramitacao.texto
+                                t.data_fim_prazo = tramitacao.data_fim_prazo
+                                t.save()
+                        
+                        anexadas_anexada = Anexada.objects.filter(materia_principal=anexada.materia_anexada)
+                        for a in anexadas_anexada:
+                            anexadas.append(a)
+                    
+                    anexadas_principal = anexadas
 
             try:
                 self.logger.debug("user=" + username + ". Tentando enviar Tramitacao (sender={}, post={}, request={}"
