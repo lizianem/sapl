@@ -1,0 +1,49 @@
+{% extends "crud/form.html" %}
+{% load i18n %}
+{% load crispy_forms_tags cropping %}
+
+
+{% block extra_js %}      
+    <script language="Javascript"> 
+        var sigla_inicial = ""
+        var nome_inicial = ""
+
+        $(document).ready(function() {
+           $("#id_data_modificacao").attr("disabled", true);
+           sigla_inicial = document.getElementById("id_sigla").value
+           nome_inicial = document.getElementById("id_nome").value
+
+           check_change = () => {
+               if(sigla_inicial != document.getElementById("id_sigla").value &&
+                    nome_inicial != document.getElementById("id_nome").value){
+                    $("#id_data_modificacao").attr("disabled", false);
+                    $("#id_sigla").removeClass("is-invalid")
+                    $("#id_nome").removeClass("is-invalid")
+               }
+               else{
+                    $("#id_data_modificacao").attr("disabled", true);
+                    if(sigla_inicial == document.getElementById("id_sigla").value){
+                        $("#id_sigla").addClass("is-invalid");
+                        $( "#div_id_sigla" ).append( '<small style="color:red">Sigla do partido deve ser mudado</small>' );
+                    }
+                    if(nome_inicial == document.getElementById("id_nome").value){
+                        $("#id_nome").addClass("is-invalid");
+                        $( "#div_id_nome" ).append( '<small style="color:red">Nome do partido deve ser mudado</small>');
+                    }  
+               }
+           }
+
+           document.getElementById("id_sigla").onchange = check_change
+           document.getElementById("id_nome").onchange = check_change
+           
+        });
+
+        function abilita_alteracao(){
+            alert("a")
+            $("#id_data_modificacao").attr("disabled", false );
+        }
+
+
+    </script>
+
+{% endblock extra_js %} 

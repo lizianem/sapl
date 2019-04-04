@@ -68,6 +68,8 @@ class PartidoCrud(CrudAux):
         form_class = PartidoForm
 
     class UpdateView(CrudAux.UpdateView):
+        template_name = "parlamentares/partido_update.html"
+        layout_key = None
         form_class = PartidoForm
 
         def form_valid(self, form):
@@ -79,11 +81,22 @@ class PartidoCrud(CrudAux):
                 antigo_nome = form.cleaned_data['partido'].nome
 
                 partido = Partido.objects.get(pk=self.kwargs.get('pk'))
-                partido.sigla = nova_sigla
-                partido.nome = novo_nome
-                historico_partido = HistoricoPartido(sigla=antiga_sigla,nome=antigo_nome,partido=partido)
-                historico_partido.save()
-                partido.save()
+                historico = HistoricoPartido.objects.filter(partido=partido).order_by("data_alteracao")
+
+                if form.cleaned_data['data_modificacao'] > historico.last().data_alteracao:
+                    partido.sigla = nova_sigla
+                    partido.nome = novo_nome
+                    novo_historico_partido = HistoricoPartido(sigla=nova_sigla,nome=novo_nome,
+                                                                partido=partido, data_alteracao=form.cleaned_data['data_modificacao'])
+                    novo_historico_partido.save()
+                    partido.save()
+                
+                else:
+                    novo_historico_partido = HistoricoPartido(sigla=nova_sigla,nome=novo_nome,
+                                                                partido=partido, data_alteracao=form.cleaned_data['data_modificacao'])
+                    novo_historico_partido.save()
+                    partido.save()
+                 
 
             return HttpResponseRedirect(
                 reverse('sapl.parlamentares:partido_detail', kwargs={'pk': self.kwargs.get('pk')}))
@@ -92,7 +105,7 @@ class PartidoCrud(CrudAux):
     class DetailView(CrudAux.DetailView):
         def get_context_data(self, **kwargs):
             context = super().get_context_data(kwargs=kwargs)
-            context.update({'historico': HistoricoPartido.objects.filter(partido=self.object).order_by('-pk')})
+            context.update({'historico': HistoricoPartido.objects.filter(partido=self.object).order_by('-data_alteracao')})
             return context
 
 class VotanteView(MasterDetailCrud):

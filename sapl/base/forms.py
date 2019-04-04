@@ -1384,6 +1384,8 @@ class AlterarSenhaForm(Form):
 
 class PartidoForm(FileFieldCheckMixin, ModelForm):
 
+    data_modificacao = forms.DateField(initial=timezone.now())
+
     class Meta:
         model = Partido
         exclude = []
@@ -1392,17 +1394,22 @@ class PartidoForm(FileFieldCheckMixin, ModelForm):
         super().__init__(*args, **kwargs)
 
         row1 = to_row([
-            ('sigla', 2),
-            ('nome', 6),
-            ('data_criacao', 2),
-            ('data_extincao', 2)]
+            ('sigla', 6),
+            ('nome', 6)
+            ]
         )
-        row2 = to_row([('observacao', 12)])
-        row3 = to_row([('logo_partido', 12)])
+        row2 = to_row([
+            ('data_criacao', 4),
+            ('data_extincao', 4),
+            ('data_modificacao', 4),
+            ]
+        )
+        row3 = to_row([('observacao', 12)])
+        row4 = to_row([('logo_partido', 12)])
 
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
-            row1, row2, row3,
+            row1, row2, row3, row4,
             form_actions(label='Salvar')
         )
 
