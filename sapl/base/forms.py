@@ -1384,11 +1384,57 @@ class AlterarSenhaForm(Form):
 
 class PartidoForm(FileFieldCheckMixin, ModelForm):
 
+    class Meta:
+        model = Partido
+        exclude = []
+
+    def __init__(self, pk=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        row1 = to_row([
+            ('sigla', 2),
+            ('nome', 6),
+            ('data_criacao', 2),
+            ('data_extincao', 2)
+            ]
+        )
+        row2 = to_row([('observacao', 12)])
+        row3 = to_row([('logo_partido', 12)])
+
+        self.helper = SaplFormHelper()
+        self.helper.layout = Layout(
+            row1, row2, row3,
+            form_actions(label='Salvar')
+        )
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+
+        if not self.is_valid():
+            return cleaned_data
+
+        if cleaned_data['data_criacao'] and cleaned_data['data_extincao'] and cleaned_data['data_criacao'] > \
+                cleaned_data['data_extincao']:
+            raise ValidationError("Certifique-se de que a data de criação seja anterior à data de extinção.")
+
+        if self.instance.pk:
+            partido = Partido.objects.get(pk=self.instance.pk)
+
+            if xor(cleaned_data['sigla'] == partido.sigla, cleaned_data['nome'] == partido.nome):
+                raise ValidationError(_('O Partido deve ter um novo Nome e uma nova Sigla.'))
+
+            cleaned_data.update({'partido': partido})
+
+        return cleaned_data
+
+class PartidoUpdateForm(PartidoForm):
+
     data_modificacao = forms.DateField(initial=timezone.now())
 
     class Meta:
         model = Partido
         exclude = []
+
 
     def __init__(self, pk=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -1412,23 +1458,3 @@ class PartidoForm(FileFieldCheckMixin, ModelForm):
             row1, row2, row3, row4,
             form_actions(label='Salvar')
         )
-
-    def clean(self):
-        cleaned_data = self.cleaned_data
-
-        if not self.is_valid():
-            return cleaned_data
-
-        if cleaned_data['data_criacao'] and cleaned_data['data_extincao'] and cleaned_data['data_criacao'] > \
-                cleaned_data['data_extincao']:
-            raise ValidationError("Certifique-se de que a data de criação seja anterior à data de extinção.")
-
-        if self.instance.pk:
-            partido = Partido.objects.get(pk=self.instance.pk)
-
-            if xor(cleaned_data['sigla'] == partido.sigla, cleaned_data['nome'] == partido.nome):
-                raise ValidationError(_('O Partido deve ter um novo Nome e uma nova Sigla.'))
-
-            cleaned_data.update({'partido': partido})
-
-        return cleaned_data

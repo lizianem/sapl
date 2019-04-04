@@ -22,7 +22,7 @@ from django_filters.views import FilterView
 from image_cropping.utils import get_backend
 
 
-from sapl.base.forms import SessaoLegislativaForm, PartidoForm
+from sapl.base.forms import SessaoLegislativaForm, PartidoForm, PartidoUpdateForm
 from sapl.base.models import Autor
 from sapl.comissoes.models import Participacao
 from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
@@ -70,7 +70,7 @@ class PartidoCrud(CrudAux):
     class UpdateView(CrudAux.UpdateView):
         template_name = "parlamentares/partido_update.html"
         layout_key = None
-        form_class = PartidoForm
+        form_class = PartidoUpdateForm
 
         def form_valid(self, form):
             nova_sigla = form.cleaned_data['sigla']
@@ -83,7 +83,8 @@ class PartidoCrud(CrudAux):
                 partido = Partido.objects.get(pk=self.kwargs.get('pk'))
                 historico = HistoricoPartido.objects.filter(partido=partido).order_by("data_alteracao")
 
-                if form.cleaned_data['data_modificacao'] > historico.last().data_alteracao:
+
+                if not (historico.last()) or form.cleaned_data['data_modificacao'] >= historico.last().data_alteracao:
                     partido.sigla = nova_sigla
                     partido.nome = novo_nome
                     novo_historico_partido = HistoricoPartido(sigla=nova_sigla,nome=novo_nome,
@@ -93,7 +94,7 @@ class PartidoCrud(CrudAux):
                 
                 else:
                     novo_historico_partido = HistoricoPartido(sigla=nova_sigla,nome=novo_nome,
-                                                                partido=partido, data_alteracao=form.cleaned_data['data_modificacao'])
+                                                                  partido=partido, data_alteracao=form.cleaned_data['data_modificacao'])
                     novo_historico_partido.save()
                     partido.save()
                  
