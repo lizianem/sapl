@@ -83,20 +83,20 @@ class PartidoCrud(CrudAux):
                 partido = Partido.objects.get(pk=self.kwargs.get('pk'))
                 historico = HistoricoPartido.objects.filter(partido=partido).order_by("data_alteracao")
 
-
-                if not (historico.last()) or form.cleaned_data['data_modificacao'] >= historico.last().data_alteracao:
+                data_modificacao = form.cleaned_data['data_modificacao']
+                    
+                if ((not historico) or data_modificacao >= historico.last().data_alteracao):
                     partido.sigla = nova_sigla
                     partido.nome = novo_nome
-                    novo_historico_partido = HistoricoPartido(sigla=nova_sigla,nome=novo_nome,
-                                                                partido=partido, data_alteracao=form.cleaned_data['data_modificacao'])
+                    novo_historico_partido = HistoricoPartido(sigla=antiga_sigla,nome=antigo_nome,
+                                                                partido=partido, data_alteracao=data_modificacao)
                     novo_historico_partido.save()
                     partido.save()
                 
                 else:
                     novo_historico_partido = HistoricoPartido(sigla=nova_sigla,nome=novo_nome,
-                                                                  partido=partido, data_alteracao=form.cleaned_data['data_modificacao'])
+                                                                  partido=partido, data_alteracao=data_modificacao)
                     novo_historico_partido.save()
-                    partido.save()
                  
 
             return HttpResponseRedirect(
@@ -710,13 +710,14 @@ class ParlamentarCrud(Crud):
                                       ". Filiação encontrada com sucesso.")
 
                     partido_aux = filiacao.partido
-                    historico = HistoricoPartido.objects.filter(partido=filiacao.partido).order_by('-data_alteracao')  
+                    historico = HistoricoPartido.objects.filter(partido=partido_aux).order_by('data_alteracao')  
                     if historico:
                         for p in historico:
                             if legislatura.data_fim < p.data_alteracao:
                                 partido_aux = p
+                                break
 
-                        row[1] = (partido_aux.sigla, None, None)
+                    row[1] = (partido_aux.sigla, None, None)
 
             return context
 
@@ -1185,3 +1186,14 @@ def altera_field_mesa_public_view(request):
          'lista_fotos': lista_fotos,
          'sessao_selecionada': sessao_selecionada,
          'msg': ('', 1)})
+
+def deleta_historico_partido(request, pk):
+    historico = HistoricoPartido.objects.get(pk=pk)
+    pk_partido = historico.partido.pk
+    historico.delete()
+    
+    return HttpResponseRedirect(
+                reverse(
+                    'sapl.parlamentares:partido_detail',
+                    kwargs={'pk': pk_partido}))
+

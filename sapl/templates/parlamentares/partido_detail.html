@@ -19,6 +19,7 @@
             <th scope="col">Data de modificação</th>
             <th scope="col">Sigla Anterior</th>
             <th scope="col">Nome Anterior</th>
+            <th scope="col">Deletar</th>
           </tr>
         </thead>
         <tbody>
@@ -27,6 +28,7 @@
             <td>{{ h.data_alteracao }}</td>
             <td>{{ h.sigla }}</td>
             <td>{{ h.nome }}</td>
+            <td><a href="{% url 'sapl.parlamentares:deleta_historico_partido' h.pk%}">X</a></td>
           </tr>
         {% endfor %}
         </tbody>

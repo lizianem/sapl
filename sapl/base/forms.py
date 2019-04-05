@@ -1413,6 +1413,9 @@ class PartidoForm(FileFieldCheckMixin, ModelForm):
         if not self.is_valid():
             return cleaned_data
 
+        if cleaned_data['data_modificacao'] < cleaned_data['data_criacao']:
+            raise ValidationError("A data de modificação não pode ser menor que a de criação.")
+
         if cleaned_data['data_criacao'] and cleaned_data['data_extincao'] and cleaned_data['data_criacao'] > \
                 cleaned_data['data_extincao']:
             raise ValidationError("Certifique-se de que a data de criação seja anterior à data de extinção.")
