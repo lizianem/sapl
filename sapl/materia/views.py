@@ -1136,6 +1136,10 @@ class RelatoriaCrud(MasterDetailCrud):
         logger = logging.getLogger(__name__)
 
 
+def filtro_campos(object, lista):
+
+
+
 class TramitacaoCrud(MasterDetailCrud):
     model = Tramitacao
     parent_field = 'materia'
