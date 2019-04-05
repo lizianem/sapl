@@ -26,7 +26,7 @@ from sapl.materia.models import Proposicao, TipoMateriaLegislativa,\
     MateriaLegislativa, Tramitacao
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import DocumentoAdministrativo,\
-    DocumentoAcessorioAdministrativo, TramitacaoAdministrativo
+    DocumentoAcessorioAdministrativo, TramitacaoAdministrativo, Anexado
 from sapl.sessao.models import SessaoPlenaria
 from sapl.utils import models_with_gr_for_model, choice_anos_com_sessaoplenaria
 
@@ -484,9 +484,8 @@ class _TramitacaoAdministrativoViewSet(BusinessRulesNotImplementedMixin):
         return qs
 
 
-class _AnexadoViewSet(
-        SaplSetViews['protocoloadm']['anexado'],
-        BusinessRulesNotImplementedMixin):
+@customize(Anexado)
+class _AnexadoViewSet(BusinessRulesNotImplementedMixin):
 
     permission_classes = (
         _DocumentoAdministrativoViewSet.DocumentoAdministrativoPermission, )
@@ -499,26 +498,12 @@ class _AnexadoViewSet(
         return qs
 
 
-class _SessaoPlenariaViewSet(
-        SaplSetViews['sessao']['sessaoplenaria']):
+@customize(SessaoPlenaria)
+class _SessaoPlenariaViewSet:
 
     @action(detail=False)
     def years(self, request, *args, **kwargs):
         years = choice_anos_com_sessaoplenaria()
 
-        serializer = ChoiceSerializer(years, many=True)
+        serializer = ChoiceSerializer(yaers, may=True)
         return Response(serializer.data)
-
-
-SaplSetViews['base']['autor'] = _AutorViewSet.build_class_with_actions()
-
-SaplSetViews['materia']['proposicao'] = _ProposicaoViewSet
-
-SaplSetViews['parlamentares']['parlamentar'] = _ParlamentarViewSet
-
-SaplSetViews['protocoloadm']['documentoadministrativo'] = _DocumentoAdministrativoViewSet
-SaplSetViews['protocoloadm']['documentoacessorioadministrativo'] = _DocumentoAcessorioAdministrativoViewSet
-SaplSetViews['protocoloadm']['tramitacaoadministrativo'] = _TramitacaoAdministrativoViewSet
-SaplSetViews['protocoloadm']['anexado'] = _AnexadoViewSet
-
-SaplSetViews['sessao']['sessaoplenaria'] = _SessaoPlenariaViewSet
